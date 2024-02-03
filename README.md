@@ -7,7 +7,7 @@
 Instructions on how to install and set up the project.
 
 ```bash
-git clone https://github.com/javagrunt/com.javagrunt.service.twitch
+git clone https://github.com/javagrunt-com/com.javagrunt.service.twitch
 cd com.javagrunt.service.twitch
 ```
 
@@ -15,6 +15,12 @@ cd com.javagrunt.service.twitch
 
 ```bash
 ./mvnw spring-boot:test-run
+```
+
+## Getting a Twitch `User` access token
+
+```bash
+twitch token -u -s "user:read:email moderation:read channel:read:subscriptions"
 ```
 
 ## See Also
