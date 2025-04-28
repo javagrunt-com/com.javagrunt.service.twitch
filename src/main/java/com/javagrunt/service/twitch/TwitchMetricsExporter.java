@@ -8,13 +8,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 
 import static com.github.twitch4j.helix.domain.Video.*;
 
 @Service
+@RestController
 public class TwitchMetricsExporter {
 
     Logger logger = LoggerFactory.getLogger(TwitchService.class);
@@ -30,10 +34,10 @@ public class TwitchMetricsExporter {
         this.authToken = twitchService.getAccessToken();
         this.broadcasterId = twitchService.getBroadcasterId();
         Gauge
-                .builder("twitch_live_viewer_count", this, TwitchMetricsExporter::getLiveViewerCount)
+                .builder("twitch_inbound_followers", this, TwitchMetricsExporter::getInboundFollowersCount)
                 .register(meterRegistry);
         Gauge
-                .builder("twitch_inbound_followers", this, TwitchMetricsExporter::getInboundFollowersCount)
+                .builder("twitch_live_viewer_count", this, TwitchMetricsExporter::getLiveViewerCount)
                 .register(meterRegistry);
         Gauge
                 .builder("twitch_moderator_count", this, TwitchMetricsExporter::getModeratorCount)
@@ -46,7 +50,8 @@ public class TwitchMetricsExporter {
                 .register(meterRegistry);
     }
 
-    @Scheduled(fixedDelay = 600000)
+    @GetMapping("/exportMetrics")
+    @Scheduled(fixedDelay = 600000) // Every 10 minutes
     public void exportMetrics() {
         getInboundFollowersCount();
         getLiveViewerCount();
@@ -55,6 +60,7 @@ public class TwitchMetricsExporter {
         getVideoCount();
     }
 
+    @GetMapping("/getInboundFollowersCount")
     Integer getInboundFollowersCount() {
         InboundFollowers inboundFollowers = getInboundFollowers();
         if (inboundFollowers != null) {
@@ -63,6 +69,7 @@ public class TwitchMetricsExporter {
         return 0;
     }
 
+    @GetMapping("/getLiveViewerCount")
     Integer getLiveViewerCount() {
         Stream stream = getStream();
         if (stream != null) {
@@ -71,14 +78,17 @@ public class TwitchMetricsExporter {
         return 0;
     }
 
+    @GetMapping("/getModeratorCount")
     Integer getModeratorCount() {
         return getModeratorList().getModerators().isEmpty() ? 0 : getModeratorList().getModerators().size();
     }
 
+    @GetMapping("/getSubscriptionCount")
     Integer getSubscriptionCount() {
         return getSubscriptionList().getSubscriptions().size();
     }
 
+    @GetMapping("/getVideoCount")
     Integer getVideoCount() {
         return getVideoList().getVideos().size();
     }
@@ -101,7 +111,7 @@ public class TwitchMetricsExporter {
                     .getHelix()
                     .getChannelFollowers(authToken, broadcasterId, null, null, null)
                     .execute();
-            logger.info("InboundFollowers: {}", inboundFollowers);
+//            logger.info("InboundFollowers: {}", inboundFollowers);
             return inboundFollowers;
         } catch (Exception e) {
             logger.error("TwitchMetricsExporter.getFollowers:", e);
@@ -115,7 +125,7 @@ public class TwitchMetricsExporter {
                 .getModerators(authToken, broadcasterId, null, null, null)
                 .execute();
 
-        moderatorList.getModerators().forEach((moderator -> logger.info(moderator.toString())));
+//        moderatorList.getModerators().forEach((moderator -> logger.info(moderator.toString())));
 
         return moderatorList;
     }
@@ -125,7 +135,7 @@ public class TwitchMetricsExporter {
                 .getHelix().getSubscriptions(authToken, broadcasterId, null, null, null)
                 .execute();
 
-        subscriptionList.getSubscriptions().forEach(subscription -> logger.info(subscription.getUserName()));
+//        subscriptionList.getSubscriptions().forEach(subscription -> logger.info(subscription.getUserName()));
 
         return subscriptionList;
     }
@@ -136,7 +146,7 @@ public class TwitchMetricsExporter {
                 .getVideos(authToken, null, broadcasterId, null, null, SearchPeriod.ALL, SearchOrder.TIME, Type.ALL, 100, null, null)
                 .execute();
 
-        resultList.getVideos().forEach(video -> logger.info(video.getTitle()));
+//        resultList.getVideos().forEach(video -> logger.info(video.getTitle()));
 
         return resultList;
     }

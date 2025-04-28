@@ -11,6 +11,13 @@ git clone https://github.com/javagrunt/com.javagrunt.service.twitch
 cd com.javagrunt.service.twitch
 ```
 
+## Pre-requisites
+
+- Twitch Client ID
+- Twitch Client Secret
+- Twitch Channel Name
+- Twitch User Access Token, from same Client ID/Secret
+
 ## Usage
 
 ```bash
